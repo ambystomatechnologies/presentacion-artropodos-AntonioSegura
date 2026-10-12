@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Parabroteas sarsi: Restricciones Estequiométricas en Lagos Patagónicos</title>
+  <meta name="description" content="Simulador de estequiometría ecológica, la hipótesis del filo de la navaja y el impacto de peces en Parabroteas sarsi. Basado en Balseiro et al. (2022).">
+  <link rel="stylesheet" href="app.css">
+  <!-- Chart.js: Carga local prioritaria con fallback CDN para GitHub Pages -->
+  <script src="lib/chart.umd.min.js"></script>
+  <script>
+    if (typeof Chart === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+    }
+  </script>
+</head>
+<body>
+
+  <!-- BARRA CIENTÍFICA SUPERIOR (Cita y Afiliación Académica) -->
+  <div class="meta-top-bar">
+    <div class="meta-top-container">
+      <div class="meta-citation">
+        <span>📄 <strong>Ecología Austral</strong> 32:638–649 (2022)</span>
+        <span>·</span>
+        <span>Asociación Argentina de Ecología</span>
+      </div>
+      <div class="meta-links">
+        <a href="https://doi.org/10.25260/EA.22.32.2.1.1841" target="_blank" rel="noopener">DOI: 10.25260/EA.22.32.2.1.1841</a>
+        <span>·</span>
+        <a href="https://ojs.ecologiaaustral.com.ar/index.php/Ecologia_Austral/article/view/1841/1182" target="_blank" rel="noopener">📖 Leer Paper Online</a>
+        <span>·</span>
+        <span>INIBIOMA (CONICET - UNComahue)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENCABEZADO PRINCIPAL (Compacto y Responsivo) -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <div class="brand-logo-badge">
+          <span>🦐</span>
+          <strong>P. sarsi</strong>
+        </div>
+        <div class="brand-title-wrap">
+          <h1><em>Parabroteas sarsi</em></h1>
+          <p>Restricciones Estequiométricas & Redes Tróficas</p>
+        </div>
+      </div>
+      
+      <nav class="tab-nav" aria-label="Navegación de módulos">
+        <button class="tab-btn active" data-tab="tab-knife">🔪 Filo de la Navaja</button>
+        <button class="tab-btn" data-tab="tab-cascade">🐟 Impacto de Peces</button>
+        <button class="tab-btn" data-tab="tab-ontogeny">🔬 Ontogenia C:P</button>
+        <button class="tab-btn" data-tab="tab-paper">📖 Figuras del Paper</button>
+        <button class="tab-btn" data-tab="tab-table">📊 Matriz de Presas</button>
+      </nav>
+
+      <button id="btn-fullscreen" class="btn-fullscreen" title="Pantalla Completa (Salir con Escape)">
+        ⛶ Pantalla Completa
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ====================================================================
+         MÓDULO 1: FILO DE LA NAVAJA & GEOMETRÍA NUTRICIONAL (COCKPIT PRINCIPAL)
+         ==================================================================== -->
+    <section id="tab-knife" class="tab-content active">
+      <div class="sim-layout">
+        <!-- Panel Izquierdo: Composición de la Dieta y Sliders -->
+        <aside class="controls-card">
+          <div class="card-title-compact">
+            <span>⚙️ Dieta de <em>P. sarsi</em></span>
+            <span class="tag-info">Base biomasa</span>
+          </div>
+
+          <!-- Escenarios Preconfigurados de Estudio -->
+          <div class="preset-group">
+            <span class="preset-title">Escenarios Ecológicos:</span>
+            <div class="preset-buttons">
+              <button class="btn-preset" data-preset="optimal" title="Dieta balanceada C:P ~ 162.5">🎯 Mezcla Óptima</button>
+              <button class="btn-preset" data-preset="pure_daphnia" title="Monocultivo de cladóceros C:P ~ 65">⚠️ Solo Daphnia</button>
+              <button class="btn-preset" data-preset="pure_boeckella" title="Monocultivo de copépodos C:P ~ 230">⚠️ Solo Boeckella</button>
+              <button class="btn-preset" data-preset="stocked_fish" title="Lago con truchas (remoción >1.5 mm)">🐟 Con Truchas</button>
+            </div>
+          </div>
+
+          <!-- Deslizadores Generados Dinámicamente por Taxonomía -->
+          <div id="prey-sliders-container">
+            <!-- Rellenado dinámicamente con taxonomía desde app.js -->
+          </div>
+        </aside>
+
+        <!-- Panel Derecho: KPIs Científicos + Gráficas Duales Lado a Lado -->
+        <div class="display-area">
+          <!-- Indicadores Cuantitativos en Vivo -->
+          <div class="kpi-row-compact">
+            <div class="kpi-card-compact" id="card-cp">
+              <span class="kpi-title-compact">C:P Dieta:</span>
+              <span class="kpi-val-compact" id="kpi-diet-cp">162.5</span>
+              <span class="kpi-sub-compact">Óptimo: 162.5</span>
+            </div>
+
+            <div class="kpi-card-compact" id="card-growth">
+              <span class="kpi-title-compact">Tasa Crecimiento <i>g</i>:</span>
+              <span class="kpi-val-compact" id="kpi-growth-rate">+0.0099</span>
+              <span class="kpi-unit-compact">d<sup>&minus;1</sup></span>
+            </div>
+
+            <div class="kpi-card-compact optimum" id="card-status">
+              <span class="kpi-title-compact">Estado:</span>
+              <span class="kpi-val-compact" id="kpi-metabolic-status" style="font-size: 0.8rem;">ZONA ÓPTIMA MÁXIMA</span>
+            </div>
+          </div>
+
+          <!-- Gráficos Lado a Lado -->
+          <div class="charts-duo">
+            <!-- Gráfico 1: Curva del Filo de la Navaja -->
+            <div class="chart-card">
+              <div class="chart-header-compact">
+                <span class="chart-title-compact">Curva del Filo de la Navaja (Fig. 5 Balseiro et al.)</span>
+                <span class="chart-badge-compact"><i>g</i> vs C:P presa</span>
+              </div>
+              <div class="canvas-container-cockpit">
+                <canvas id="knifeEdgeCanvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Gráfico 2: Dinámica Poblacional del Depredador -->
+            <div class="chart-card">
+              <div class="chart-header-compact">
+                <span class="chart-title-compact">Dinámica Poblacional de <em>P. sarsi</em> a 30 Días</span>
+                <span class="chart-badge-compact"><i>N</i>(<i>t</i>) = <i>N</i><sub>0</sub>·e<sup>(<i>g</i>&minus;<i>m</i>)<i>t</i></sup></span>
+              </div>
+              <div class="canvas-container-cockpit">
+                <canvas id="popDynamicCanvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN INFORMATIVA / TEÓRICA AL PIE DE PÁGINA -->
+      <div class="info-section-bottom">
+        <div class="science-callout">
+          <strong>Demostración de la Hipótesis del Filo de la Navaja (Stoichiometric Knife-Edge):</strong><br>
+          Ninguna presa individual puede satisfacer por sí sola los requerimientos de <em>P. sarsi</em>. Si se alimenta exclusivamente de cladóceros (<em>Daphnia</em>, C:P ~ 65), cae en el filo izquierdo: toxicidad/costo metabólico por exceso de fósforo y pérdida de biomasa (<i>g</i> &lt; 0). Si consume únicamente copépodos (<em>Boeckella</em>, C:P > 228), cae en el filo derecho: limitación severa de fósforo para síntesis de ARN ribosomal (<i>g</i> &le; 0). Requiere obligatoriamente combinar presas de perfiles elementales complementarios (Geometría Nutricional).
+        </div>
+
+        <!-- Banner Teórico con Datos de 101 Lagos -->
+        <div class="overview-card">
+          <div class="overview-grid">
+            <div class="overview-text">
+              <h2>Restricciones Estequiométricas en Lagos Patagónicos: El Caso del Copépodo Gigante</h2>
+              <p>
+                <em>Parabroteas sarsi</em> es uno de los copépodos dulceacuícolas más grandes del mundo (hasta 7.5 mm) y el depredador invertebrado tope de los lagos patagónicos y antárticos. A diferencia de lo predicho por modelos tróficos clásicos, este depredador <strong>no encuentra ninguna presa natural que cumpla por sí sola con sus requerimientos elementales</strong> (relación Carbono:Fósforo, C:P).
+              </p>
+              <p>
+                La teoría del <em>Filo de la Navaja</em> demuestra que dietas con C:P excesivamente alto (copépodos pobres en fósforo) o excesivamente bajo (cladóceros con exceso de fósforo) inducen <strong>crecimiento somático negativo</strong>. Solo mediante la coexistencia de presas alternativas puede prosperar. La siembra antropogénica de truchas altera catastróficamente este equilibrio.
+              </p>
+              <div class="overview-meta">
+                <span class="meta-item">📍 Rango: 39°S - 68°S (Patagonia y Antártida)</span>
+                <span class="meta-item">🧪 Óptimo: C:P = 162.5 atómico</span>
+                <span class="meta-item">🛡️ Refugio: 30 - 40 m en lagos glaciares profundos</span>
+              </div>
+            </div>
+            <div class="stat-pills">
+              <div class="stat-pill">
+                <span class="label">Lagos analizados</span>
+                <span class="value">101 ambientes</span>
+              </div>
+              <div class="stat-pill">
+                <span class="label">Presencia sin peces</span>
+                <span class="value">92 lagos (91.1%)</span>
+              </div>
+              <div class="stat-pill">
+                <span class="label">Presencia con peces</span>
+                <span class="value">9 lagos (7 con refugio)</span>
+              </div>
+              <div class="stat-pill">
+                <span class="label">Ventana C:P Crecimiento (+)</span>
+                <span class="value">108 – 215 atómico</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO 2: IMPACTO DE PECES & CASCADA TRÓFICA (GRÁFICA EN PRIMER PLANO)
+         ==================================================================== -->
+    <section id="tab-cascade" class="tab-content">
+      <div class="cascade-cockpit-grid">
+        <!-- Panel Izquierdo: Controles de Siembra y Estado del Ecosistema -->
+        <aside class="controls-card">
+          <div class="card-title-compact">
+            <span>🐟 Introducción de Salmónidos</span>
+            <span class="tag-info">Presión trófica</span>
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name">Densidad de Siembra de Truchas</span>
+              <span class="slider-val" id="fish-pressure-val">0%</span>
+            </div>
+            <input type="range" id="fish-pressure-slider" min="0" max="100" value="0" step="5">
+          </div>
+
+          <div class="slider-item">
+            <label class="slider-header" for="lake-type-select" style="margin-bottom: 2px;">
+              <span class="slider-name">Morfometría del Lago:</span>
+            </label>
+            <select id="lake-type-select" style="background: #1e293b; color: #fff; padding: 0.4rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); width: 100%; font-size: 0.78rem;">
+              <option value="shallow">Lago Somero (&lt;10 m, Sin Refugio Oscuro)</option>
+              <option value="deep">Gran Lago Andino Glacial (&gt;30 m, Con Refugio Hipolimnético)</option>
+            </select>
+          </div>
+
+          <!-- Métricas de Respuesta en Cascada -->
+          <div class="cascade-mini-metrics">
+            <div class="mini-metric-row">
+              <div class="metric-header">
+                <span>Fitoflagelados (Eucariotas)</span>
+                <span id="cascade-flagellates" style="color: var(--accent-teal);">98%</span>
+              </div>
+              <div class="progress-bar-thin">
+                <div class="progress-fill-thin" id="bar-flagellates" style="width: 98%; background: var(--accent-teal);"></div>
+              </div>
+            </div>
+
+            <div class="mini-metric-row">
+              <div class="metric-header">
+                <span>Cianobacterias (Floraciones)</span>
+                <span id="cascade-cyano" style="color: var(--accent-rose);">2%</span>
+              </div>
+              <div class="progress-bar-thin">
+                <div class="progress-fill-thin" id="bar-cyano" style="width: 2%; background: var(--accent-rose);"></div>
+              </div>
+            </div>
+
+            <div class="mini-metric-row">
+              <div class="metric-header">
+                <span>Biomasa de <em>Daphnia</em></span>
+                <span id="cascade-daphnia" style="color: var(--accent-cyan);">100%</span>
+              </div>
+              <div class="progress-bar-thin">
+                <div class="progress-fill-thin" id="bar-daphnia" style="width: 100%; background: var(--accent-cyan);"></div>
+              </div>
+            </div>
+
+            <div class="mini-metric-row">
+              <div class="metric-header">
+                <span>Abundancia de <em>P. sarsi</em></span>
+                <span id="cascade-psarsi" style="color: var(--accent-purple);">100%</span>
+              </div>
+              <div class="progress-bar-thin">
+                <div class="progress-fill-thin" id="bar-psarsi" style="width: 100%; background: var(--accent-purple);"></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Panel Derecho: Gráfico de Desplazamiento Comunitario -->
+        <div class="display-area">
+          <div class="chart-card">
+            <div class="chart-header-compact">
+              <span class="chart-title-compact">Desplazamiento Comunitario y Cascada Trófica (Fig. 6)</span>
+              <span class="chart-badge-compact">Zooplancton medio: <strong id="cascade-zoo-size" style="color:#fff;">1.40 mm</strong></span>
+            </div>
+            <div class="canvas-container-cockpit">
+              <canvas id="cascadeChartCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Relato Dinámico y Notas Científicas al Pie -->
+      <div class="info-section-bottom">
+        <div class="overview-card">
+          <p id="cascade-narrative" style="color: var(--text-primary); font-size: 0.88rem; line-height: 1.55;">
+            <strong>Lago Prístino Sin Peces:</strong> Parabroteas sarsi reina como depredador tope de invertebrados. Coexisten copépodos y grandes cladóceros (<em>Daphnia</em>). El fitoplancton es dominado por fitoflagelados (>95%) con agua oligotrófica transparente y baja biomasa de cianobacterias.
+          </p>
+        </div>
+
+        <div class="science-callout">
+          <strong>Mecanismo del Desacoplamiento Estequiométrico por Salmónidos:</strong><br>
+          Los peces introducidos eliminan por depredación visual a las presas grandes (&ge; 1.5 mm). Esto erradica a <em>Daphnia</em>, dejando solo pequeños copépodos de C:P > 230. Sin cladóceros para balancear la dieta, <em>P. sarsi</em> sufre inanición de fósforo y se extingue localmente. Al desaparecer los grandes filtradores herbívoros, se produce una cascada trófica descendente: los fitoflagelados caen a ~0% y las <strong>cianobacterias se disparan a más del 98%</strong>, degradando severamente el cuerpo de agua.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO 3: ONTOGENIA & HOMEOSTASIS ESTEQUIOMÉTRICA
+         ==================================================================== -->
+    <section id="tab-ontogeny" class="tab-content">
+      <div class="stage-timeline">
+        <button class="stage-btn" data-stage="nauplii">
+          <span>Nauplios</span>
+          <span class="sub">NI - NVI</span>
+        </button>
+        <button class="stage-btn" data-stage="ci">
+          <span>Copepodito I</span>
+          <span class="sub">CI (Microfagia)</span>
+        </button>
+        <button class="stage-btn active" data-stage="cii">
+          <span>Copepodito II</span>
+          <span class="sub">CII (Mínimo C:P)</span>
+        </button>
+        <button class="stage-btn" data-stage="ciii">
+          <span>Copepodito III</span>
+          <span class="sub">CIII (Omnivoría)</span>
+        </button>
+        <button class="stage-btn" data-stage="civ">
+          <span>Copepodito IV</span>
+          <span class="sub">CIV (Carnívoro)</span>
+        </button>
+        <button class="stage-btn" data-stage="cv">
+          <span>Copepodito V</span>
+          <span class="sub">CV (Macrofagia)</span>
+        </button>
+        <button class="stage-btn" data-stage="male">
+          <span>Adulto Macho</span>
+          <span class="sub">4.0 - 5.0 mm</span>
+        </button>
+        <button class="stage-btn" data-stage="female">
+          <span>Adulto Hembra</span>
+          <span class="sub">5.0 - 7.5 mm</span>
+        </button>
+      </div>
+
+      <div class="sim-layout">
+        <!-- Ficha Morfológica y Fisiológica -->
+        <div class="controls-card">
+          <div class="card-title-compact">
+            <span id="stage-detail-name">Copepodito II (CII)</span>
+            <span class="tag-info">Estadio de desarrollo</span>
+          </div>
+
+          <div class="stat-pills">
+            <div class="stat-pill">
+              <span class="label">Espectro de Alimento:</span>
+              <span class="value" id="stage-size-spectrum" style="font-size: 0.85rem;">50 - 250 µm</span>
+            </div>
+            <div class="stat-pill">
+              <span class="label">C:P Somático Medio:</span>
+              <span class="value" id="stage-cp-val" style="font-size: 0.85rem;">45 (±10) atómico</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+            <span class="kpi-title-compact">Modo Trófico:</span>
+            <p id="stage-diet-desc" style="font-size: 0.78rem; color: var(--text-primary);">
+              Transición de microfagia a consumo de rotíferos pequeños.
+            </p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+            <span class="kpi-title-compact">Regulación Homeostática:</span>
+            <strong id="stage-homeostasis-title" style="color: var(--accent-teal); font-size: 0.82rem;">Homeostasis Máxima</strong>
+            <p id="stage-homeostasis-desc" style="font-size: 0.76rem; color: var(--text-secondary);">
+              El organismo mantiene rígidamente su composición elemental corporal.
+            </p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+            <span class="kpi-title-compact">Piezas Bucales:</span>
+            <p id="stage-mouthparts-desc" style="font-size: 0.76rem; color: var(--text-secondary);">
+              Superficie mandibular molar para triturar células algales finas.
+            </p>
+          </div>
+        </div>
+
+        <!-- Gráfica de Ontogenia Fig. 3 -->
+        <div class="chart-card">
+          <div class="chart-header-compact">
+            <span class="chart-title-compact">Evolución Ontogenética del C:P Somático (Fig. 3 Balseiro et al.)</span>
+            <span class="chart-badge-compact">Laspoumaderes et al. (2010)</span>
+          </div>
+          <div class="canvas-container-cockpit">
+            <canvas id="ontogenyCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO 4: FIGURAS ORIGINALES DEL PAPER (GALERÍA EN ALTA RESOLUCIÓN)
+         ==================================================================== -->
+    <section id="tab-paper" class="tab-content">
+      <div class="figures-grid">
+        <!-- Figura 1 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap">
+            <img src="assets/fig1_distribucion_geografica.jpg" alt="Figura 1: Distribución Geográfica de Parabroteas sarsi" loading="lazy">
+          </div>
+          <div class="figure-content">
+            <span class="figure-num">Figura 1</span>
+            <h3 class="figure-title">Distribución Geográfica y Presencia de Peces</h3>
+            <p class="figure-desc">
+              Mapa de distribución de <em>Parabroteas sarsi</em> en 101 cuerpos de agua de la Patagonia e islas subantárticas. Los símbolos grises indican lagos sin peces (92 lagos, dominante); los símbolos negros indican lagos con peces (solo 9, de los cuales 7 son lagos glaciares ultraprofundos con refugio afótico a 30-40 m).
+            </p>
+            <div class="figure-takeaway">
+              💡 <strong>Conclusión:</strong> En lagos someros con peces introducidos, la extinción de <em>P. sarsi</em> es absoluta.
+            </div>
+          </div>
+        </div>
+
+        <!-- Figura 2 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap">
+            <img src="assets/fig2_espectro_tamanos_presas.jpg" alt="Figura 2: Espectro de Tamaños de Alimento" loading="lazy">
+          </div>
+          <div class="figure-content">
+            <span class="figure-num">Figura 2</span>
+            <h3 class="figure-title">Espectro de Tamaño de Alimento por Estadio</h3>
+            <p class="figure-desc">
+              Distribución de consumo (%) en función del tamaño de presa consumida para cada estadio de desarrollo (CI a Adultos). Muestra el salto de presas microscópicas algales (20-100 µm) a presas carnívoras macroscópicas (>1500-3000 µm).
+            </p>
+            <div class="figure-takeaway">
+              💡 <strong>Conclusión:</strong> Los adultos requieren presas de gran porte para sostener su demanda energética y reproductiva.
+            </div>
+          </div>
+        </div>
+
+        <!-- Figura 3 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap">
+            <img src="assets/fig3_ontogenia_estequiometria.jpg" alt="Figura 3: Cambios en el C:P Corporal" loading="lazy">
+          </div>
+          <div class="figure-content">
+            <span class="figure-num">Figura 3</span>
+            <h3 class="figure-title">Dinámica Ontogenética de la Relación C:P</h3>
+            <p class="figure-desc">
+              Relación Carbono:Fósforo somática de <em>P. sarsi</em>. En nauplios y CI-CII, el C:P es muy bajo (mínimo ~45 en CII) con varianza casi nula (homeostasis estricta). Al madurar hacia adultos (machos ~317, hembras ~350), la variabilidad se dispara drásticamente (homeostasis débil).
+            </p>
+            <div class="figure-takeaway">
+              💡 <strong>Conclusión:</strong> La producción secundaria de los adultos depende fuertemente de la composición estequiométrica de sus presas.
+            </div>
+          </div>
+        </div>
+
+        <!-- Figura 4 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap">
+            <img src="assets/fig4_presas_tamano_cp_peces.jpg" alt="Figura 4: Tamaños y C:P de Presas Potenciales" loading="lazy">
+          </div>
+          <div class="figure-content">
+            <span class="figure-num">Figura 4</span>
+            <h3 class="figure-title">Tamaño y C:P de Presas vs. Remoción por Peces</h3>
+            <p class="figure-desc">
+              Gráfico central del paper: tamaño (mm) vs C:P de las 8 presas principales. Línea punteada: óptimo dietario (162.5); franja gris: ventana de crecimiento positivo (108 a 215); área rayada: organismos &ge; 1.5 mm removidos por peces. <strong>Ninguna presa individual cae dentro de la franja gris.</strong>
+            </p>
+            <div class="figure-takeaway">
+              💡 <strong>Conclusión:</strong> Sin cladóceros (<em>Daphnia</em>, C:P ~65-75), el depredador queda forzado a copépodos (C:P >228) y no puede crecer.
+            </div>
+          </div>
+        </div>
+
+        <!-- Figura 5 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap">
+            <img src="assets/fig5_curva_crecimiento_filo_navaja.jpg" alt="Figura 5: Curva de Tasa de Crecimiento vs C:P" loading="lazy">
+          </div>
+          <div class="figure-content">
+            <span class="figure-num">Figura 5</span>
+            <h3 class="figure-title">Hipótesis del Filo de la Navaja (Knife-Edge)</h3>
+            <p class="figure-desc">
+              Tasa de crecimiento (d<sup>&minus;1</sup>) de <em>P. sarsi</em> en función del C:P del alimento en experimentos de laboratorio. La relación es parabólica: C:P excesivamente bajo genera tasas negativas (-0.012 d<sup>&minus;1</sup>), al igual que C:P excesivamente alto, con un pico de crecimiento centrado en ~162.5.
+            </p>
+            <div class="figure-takeaway">
+              💡 <strong>Conclusión:</strong> Confirma experimentalmente la hipótesis del filo de la navaja en un copépodo depredador.
+            </div>
+          </div>
+        </div>
+
+        <!-- Figura 6 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap">
+            <img src="assets/fig6_impacto_peces_plancton.jpg" alt="Figura 6: Impacto de Peces en Fitoplancton y Zooplancton" loading="lazy">
+          </div>
+          <div class="figure-content">
+            <span class="figure-num">Figura 6</span>
+            <h3 class="figure-title">Cascada Trófica: Desplazamiento a Cianobacterias</h3>
+            <p class="figure-desc">
+              a) Proporción de flagelados en el fitoplancton en lagos sin peces (~98%) vs lagos con peces (caen a casi 0% y las cianobacterias superan el 98%). b) Tamaño del zooplancton: sin peces alcanza 1.7 mm; con peces colapsa a menos de 0.45 mm.
+            </p>
+            <div class="figure-takeaway">
+              💡 <strong>Conclusión:</strong> La introducción de peces destruye la estructura trófica e induce floraciones masivas de cianobacterias.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO 5: MATRIZ DE PRESAS (TABLA COMPARATIVA)
+         ==================================================================== -->
+    <section id="tab-table" class="tab-content">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Especie</th>
+              <th>Grupo Taxonómico</th>
+              <th>Tamaño (mm)</th>
+              <th>C:P Atómico</th>
+              <th>Vulnerabilidad a Truchas</th>
+              <th>Aporte Nutricional y Rol Trófico</th>
+            </tr>
+          </thead>
+          <tbody id="prey-table-body">
+            <!-- Rellenado dinámicamente por app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="science-callout" style="margin-top: 1rem;">
+        <strong>Bioindicación y Conservación en la Patagonia:</strong><br>
+        La presencia de <em>Parabroteas sarsi</em> en lagos someros es un <strong>bioindicador de integridad ecológica prístina</strong> previa a la invasión de salmónidos. La protección de estas cuencas sin peces es prioritaria no solo para la preservación de este invertebrado endémico, sino para la supervivencia de aves en peligro crítico de extinción como el macá tobiano (<em>Podiceps gallardoi</em>).
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal para Visualización Ampliada de Figuras -->
+  <div id="figureModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Cerrar ventana emergente">&times;</button>
+      <img id="modalImage" src="" alt="Figura ampliada en alta resolución">
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <p><strong>Cátedra de Artrópodos / Limnología</strong> | Modelo Interactivo de Estequiometría Ecológica</p>
+    <p>Referencia: Balseiro, E., Modenutti, B., Laspoumaderes, C., Schenone, L., Bastidas Navarro, M., & Martyniuk, N. (2022). <em>Ecología Austral</em> 32:638–649.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
