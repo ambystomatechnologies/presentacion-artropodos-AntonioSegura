@@ -861,25 +861,15 @@ function initOrientationLock() {
   if (btnRequestLandscape) {
     btnRequestLandscape.addEventListener('click', async () => {
       try {
-        const el = document.documentElement;
-        if (el.requestFullscreen) {
-          await el.requestFullscreen();
-        } else if (el.webkitRequestFullscreen) {
-          await el.webkitRequestFullscreen();
-        } else if (el.mozRequestFullScreen) {
-          await el.mozRequestFullScreen();
-        } else if (el.msRequestFullscreen) {
-          await el.msRequestFullscreen();
-        }
-      } catch (e) {}
-
-      try {
         if (screen.orientation && screen.orientation.lock) {
           await screen.orientation.lock('landscape');
         }
       } catch (err) {}
 
-      setTimeout(checkOrientationLock, 300);
+      // Ocultar pantalla de bloqueo de inmediato
+      if (landscapeOverlay) {
+        landscapeOverlay.style.setProperty('display', 'none', 'important');
+      }
     });
   }
 

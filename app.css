@@ -1051,28 +1051,22 @@ footer.app-footer {
 }
 
 /* ==========================================================================
-   PANTALLA DE BLOQUEO HORIZONTAL EN TELÉFONOS (LANDSCAPE LOCK OVERLAY)
+   BLOQUEO / OBLIGATORIEDAD DE VISTA HORIZONTAL EN MÓVILES (CALCADO DE EJEMPLO)
    ========================================================================== */
 .landscape-lock-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: radial-gradient(circle at center, #0f172a 0%, #030712 100%);
+  background: radial-gradient(circle at center, #171926 0%, #090b12 100%);
   z-index: 999999;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem;
+  padding: 1.5rem;
   text-align: center;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-/* Se activa si la pantalla es de smartphone/tablet Y está en orientación vertical */
+/* Solo se activa si la pantalla es móvil Y está en orientación vertical (portrait) */
 @media (max-width: 900px) and (orientation: portrait) {
   .landscape-lock-overlay {
     display: flex;
@@ -1080,48 +1074,44 @@ footer.app-footer {
 }
 
 .landscape-lock-card {
-  width: 100%;
-  max-width: 320px;
-  max-height: 94dvh;
-  margin: auto;
-  background: rgba(15, 23, 42, 0.96);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 16px;
-  padding: 1.25rem 1.15rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.2);
+  max-width: 380px;
+  background: rgba(23, 25, 38, 0.95);
+  border: 1px solid rgba(0, 255, 204, 0.35);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 255, 204, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.65rem;
-  overflow-y: auto;
+  gap: 1rem;
 }
 
 .landscape-phone-animation {
   position: relative;
-  width: 55px;
-  height: 55px;
+  width: 70px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .phone-anim-body {
-  width: 26px;
-  height: 44px;
-  border: 3px solid var(--accent-cyan);
-  border-radius: 6px;
+  width: 32px;
+  height: 54px;
+  border: 3px solid #00ffcc;
+  border-radius: 7px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: rotatePhone 2.5s infinite ease-in-out;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
 }
 
 .phone-anim-screen {
   width: 80%;
   height: 80%;
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(0, 255, 204, 0.12);
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -1131,9 +1121,9 @@ footer.app-footer {
 .phone-anim-dot {
   width: 6px;
   height: 6px;
-  background: var(--accent-cyan);
+  background: #00ffcc;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
 }
 
 .phone-anim-arrow {
@@ -1141,7 +1131,7 @@ footer.app-footer {
   top: -8px;
   right: -8px;
   font-size: 1.4rem;
-  color: var(--accent-cyan);
+  color: #00ffcc;
   animation: spinArrow 2.5s infinite linear;
 }
 
@@ -1165,16 +1155,16 @@ footer.app-footer {
 
 .landscape-desc {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: #8b949e;
   line-height: 1.45;
 }
 
 .landscape-desktop-notice {
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--accent-cyan);
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #00ffcc;
+  background: rgba(0, 255, 204, 0.08);
+  border: 1px solid rgba(0, 255, 204, 0.25);
   border-radius: 8px;
   padding: 0.65rem 0.85rem;
   line-height: 1.4;
@@ -1182,21 +1172,20 @@ footer.app-footer {
 
 .btn-rotate-request {
   width: 100%;
-  padding: 0.8rem 1rem;
-  font-size: 0.95rem;
-  font-weight: 800;
+  padding: 0.75rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
   border-radius: 10px;
-  background: linear-gradient(135deg, #38bdf8, #0ea5e9) !important;
-  color: #030712 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: #00ffcc !important;
+  color: #0f111a !important;
+  border: none;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-rotate-request:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.55);
+  background-color: #33ffdf !important;
+  box-shadow: 0 0 14px rgba(0, 255, 204, 0.4);
 }
 
 /* ==========================================================================
