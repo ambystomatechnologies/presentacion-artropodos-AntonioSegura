@@ -1004,7 +1004,7 @@ footer.app-footer {
 }
 
 /* Tablets en Orientación Vertical y Móviles Grandes (≤ 900px) */
-@media (max-width: 900px) {
+@media (max-width: 900px) and (orientation: portrait) {
   .sim-layout,
   .cascade-cockpit-grid {
     grid-template-columns: 1fr;
@@ -1027,81 +1027,435 @@ footer.app-footer {
   }
 }
 
-/* Smartphones (≤ 640px) */
-@media (max-width: 640px) {
-  html {
+/* ==========================================================================
+   PANTALLA DE BLOQUEO HORIZONTAL EN TELÉFONOS (LANDSCAPE LOCK OVERLAY)
+   ========================================================================== */
+.landscape-lock-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0f172a 0%, #030712 100%);
+  z-index: 999999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* Se activa si la pantalla es de smartphone/tablet Y está en orientación vertical */
+@media (max-width: 900px) and (orientation: portrait) {
+  .landscape-lock-overlay {
+    display: flex;
+  }
+}
+
+.landscape-lock-card {
+  max-width: 380px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(56, 189, 248, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.landscape-phone-animation {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone-anim-body {
+  width: 32px;
+  height: 54px;
+  border: 3px solid var(--accent-cyan);
+  border-radius: 7px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: rotatePhone 2.5s infinite ease-in-out;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+}
+
+.phone-anim-screen {
+  width: 80%;
+  height: 80%;
+  background: rgba(56, 189, 248, 0.12);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone-anim-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+}
+
+.phone-anim-arrow {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 1.4rem;
+  color: var(--accent-cyan);
+  animation: spinArrow 2.5s infinite linear;
+}
+
+@keyframes rotatePhone {
+  0%, 20% { transform: rotate(0deg); }
+  50%, 75% { transform: rotate(90deg); }
+  90%, 100% { transform: rotate(0deg); }
+}
+
+@keyframes spinArrow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.landscape-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-top: 0.25rem;
+}
+
+.landscape-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.landscape-desktop-notice {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  line-height: 1.4;
+}
+
+.btn-rotate-request {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9) !important;
+  color: #030712 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-rotate-request:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.55);
+}
+
+/* ==========================================================================
+   VISTA HORIZONTAL MÓVIL (LANDSCAPE ERGONÓMICO EN SMARTPHONES)
+   Sliders fijos a la izquierda, gráficas scrollables a la derecha,
+   y resto de información teórica al final.
+   ========================================================================== */
+@media (max-height: 600px) and (orientation: landscape),
+       (max-width: 950px) and (orientation: landscape) {
+  html, body {
+    overflow: hidden !important;
+    height: 100vh !important;
     font-size: 13px;
   }
 
-  .meta-top-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
+  /* Ocultar barra superior metadata para ganar altura vertical */
+  .meta-top-bar {
+    display: none !important;
   }
 
+  /* Cabecera ultra-compacta */
   header.app-header {
-    padding: 0.4rem 0.6rem;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0.15rem 0.65rem !important;
+    background: rgba(10, 18, 30, 0.95) !important;
   }
 
   .header-container {
-    flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.5rem !important;
+    align-items: center !important;
   }
 
-  .brand-wrapper {
-    width: 100%;
-    justify-content: space-between;
+  .brand-logo-badge {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 0.75rem !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+
+  .brand-logo-badge strong {
+    display: none !important;
+  }
+
+  .brand-title {
+    font-size: 0.82rem !important;
+  }
+
+  .brand-sub {
+    display: none !important;
   }
 
   nav.tab-nav {
-    width: 100%;
-    justify-content: flex-start;
+    gap: 0.25rem !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none;
+  }
+
+  nav.tab-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .tab-btn {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.74rem;
+    padding: 0.22rem 0.5rem !important;
+    font-size: 0.72rem !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
   }
 
   .btn-fullscreen {
-    display: none; /* En móviles el navegador controla la pantalla completa */
+    padding: 0.22rem 0.5rem !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
   }
 
+  /* Contenedor principal ocupa todo el alto restante */
   main.container {
-    margin: 0.4rem auto 1rem auto;
-    padding: 0 0.5rem;
+    margin: 0 !important;
+    padding: 0.3rem 0.5rem 0 0.5rem !important;
+    max-width: 100% !important;
+    height: calc(100vh - 38px) !important;
+    overflow: hidden !important;
   }
 
-  .controls-card {
-    padding: 0.65rem 0.75rem;
+  .tab-content {
+    height: 100% !important;
+  }
+
+  .tab-content.active {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* Footer oculto en landscape móvil para máxima superficie útil */
+  .app-footer {
+    display: none !important;
+  }
+
+  /* --- DIVISIÓN EN 2 COLUMNAS: SLIDERS FIJOS IZQ, GRÁFICAS SCROLL DER --- */
+  .sim-layout,
+  .cascade-cockpit-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    height: 100% !important;
+    gap: 0.65rem !important;
+    overflow: hidden !important;
+  }
+
+  /* Columna Izquierda: SECCIÓN FIJA DE SLIDERS */
+  .sim-layout aside.controls-card,
+  .cascade-cockpit-grid aside.controls-card {
+    flex: 0 0 295px !important;
+    width: 295px !important;
+    max-width: 295px !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 0.5rem 0.65rem !important;
+    background: var(--bg-card) !important;
+    border-radius: var(--radius-sm) !important;
+    position: relative !important;
+    box-shadow: var(--shadow-md) !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(56, 189, 248, 0.3) transparent;
+  }
+
+  .sim-layout aside.controls-card::-webkit-scrollbar,
+  .cascade-cockpit-grid aside.controls-card::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .sim-layout aside.controls-card::-webkit-scrollbar-thumb,
+  .cascade-cockpit-grid aside.controls-card::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 9999px;
+  }
+
+  #prey-sliders-container {
+    max-height: none !important;
   }
 
   .preset-buttons {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.25rem !important;
   }
 
   .btn-preset {
-    font-size: 0.7rem;
-    padding: 0.35rem 0.3rem;
+    font-size: 0.68rem !important;
+    padding: 0.28rem 0.25rem !important;
   }
 
+  .slider-item {
+    margin-bottom: 0.3rem !important;
+    padding: 0.3rem 0.45rem !important;
+  }
+
+  .slider-header {
+    margin-bottom: 0.15rem !important;
+  }
+
+  .slider-name {
+    font-size: 0.74rem !important;
+  }
+
+  .slider-val {
+    font-size: 0.76rem !important;
+  }
+
+  /* Columna Derecha: ÁREA DE GRÁFICAS SCROLLABLE (SUBIR/BAJAR PARA OBSERVAR) */
+  .sim-layout .display-area,
+  .cascade-cockpit-grid .display-area {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 0.1rem 0.5rem 3.5rem 0.1rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(56, 189, 248, 0.4) transparent;
+  }
+
+  .sim-layout .display-area::-webkit-scrollbar,
+  .cascade-cockpit-grid .display-area::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .sim-layout .display-area::-webkit-scrollbar-thumb,
+  .cascade-cockpit-grid .display-area::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.4);
+    border-radius: 9999px;
+  }
+
+  /* Indicadores Cuantitativos en vivo en la parte superior derecha */
   .kpi-row-compact {
-    grid-template-columns: 1fr;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.45rem !important;
+    margin-bottom: 0 !important;
+    padding: 0.35rem 0.55rem !important;
   }
 
-  .kpi-row-compact .kpi-card-compact:last-child {
-    grid-column: span 1;
+  .kpi-title-compact {
+    font-size: 0.66rem !important;
+  }
+
+  .kpi-val-compact {
+    font-size: 0.95rem !important;
+  }
+
+  .kpi-sub-compact {
+    font-size: 0.65rem !important;
+  }
+
+  /* Gráficos apilados verticalmente a la derecha para máxima amplitud y nitidez */
+  .charts-duo {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+
+  .chart-card {
+    padding: 0.5rem 0.7rem !important;
+    width: 100% !important;
   }
 
   .canvas-container-cockpit {
-    height: 260px;
+    height: 245px !important;
+    min-height: 245px !important;
+    width: 100% !important;
+  }
+
+  /* Al final de todo el resto de información */
+  .info-section-bottom {
+    margin-top: 0.6rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    width: 100% !important;
+  }
+
+  .overview-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+  }
+
+  .stat-pills {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Pestañas restantes en landscape móvil */
+  #tab-ontogeny,
+  #tab-paper,
+  #tab-table {
+    height: 100% !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 3.5rem !important;
+  }
+
+  .stage-timeline {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 0.35rem !important;
+  }
+
+  .stage-btn {
+    padding: 0.3rem 0.55rem !important;
+    font-size: 0.72rem !important;
+    flex-shrink: 0 !important;
   }
 
   .figures-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
   }
 
   .figure-img-wrap {
-    height: 200px;
+    height: 180px !important;
   }
 }

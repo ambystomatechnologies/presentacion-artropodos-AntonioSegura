@@ -138,6 +138,7 @@ function calculateDietCP(weights) {
 document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   initFullscreen();
+  initOrientationLock();
   initPreySliders();
   initKnifeEdgeChart();
   initPopDynamicChart();
@@ -825,4 +826,71 @@ window.addEventListener('resize', () => {
     if (ontogenyChart) ontogenyChart.resize();
   }, 100);
 });
+
+// Control de Orientación Horizontal Obligatoria en Móviles
+function isMobileOrTabletDevice() {
+  const uaCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const touchScreenCheck = (('ontouchstart' in window) || navigator.maxTouchPoints > 0) && (window.innerWidth <= 1024 || window.innerHeight <= 1024);
+  const coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  return Boolean(uaCheck || touchScreenCheck || coarsePointer || window.innerHeight <= 620 || window.innerWidth <= 950);
+}
+
+function initOrientationLock() {
+  const landscapeOverlay = document.getElementById('landscape-lock-overlay');
+  const btnRequestLandscape = document.getElementById('btn-request-landscape');
+
+  function checkOrientationLock() {
+    if (!landscapeOverlay) return;
+    const isMobile = isMobileOrTabletDevice();
+    const isPortrait = window.innerHeight > window.innerWidth;
+
+    if (isMobile && isPortrait) {
+      landscapeOverlay.style.setProperty('display', 'flex', 'important');
+    } else {
+      landscapeOverlay.style.setProperty('display', 'none', 'important');
+      setTimeout(() => {
+        if (knifeEdgeChart) knifeEdgeChart.resize();
+        if (popDynamicChart) popDynamicChart.resize();
+        if (cascadeChart) cascadeChart.resize();
+        if (ontogenyChart) ontogenyChart.resize();
+      }, 150);
+    }
+  }
+
+  if (btnRequestLandscape) {
+    btnRequestLandscape.addEventListener('click', async () => {
+      try {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+          await el.webkitRequestFullscreen();
+        } else if (el.mozRequestFullScreen) {
+          await el.mozRequestFullScreen();
+        } else if (el.msRequestFullscreen) {
+          await el.msRequestFullscreen();
+        }
+      } catch (e) {}
+
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape');
+        }
+      } catch (err) {}
+
+      setTimeout(checkOrientationLock, 300);
+    });
+  }
+
+  window.addEventListener('resize', checkOrientationLock);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(checkOrientationLock, 150);
+  });
+  document.addEventListener('fullscreenchange', () => {
+    setTimeout(checkOrientationLock, 150);
+  });
+
+  checkOrientationLock();
+}
+
 
