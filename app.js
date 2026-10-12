@@ -512,32 +512,33 @@ function updateSimulation() {
 
   // Evaluate metabolic zone
   let statusText = 'Indeterminado';
-  let statusClass = 'kpi-card';
+  let statusClass = '';
   let descText = '';
 
   if (dietCP < 108) {
-    statusText = 'Limitación por C / Toxicidad por Exceso de P';
-    statusClass = 'kpi-card danger';
+    statusText = 'Toxicidad P (g < 0)';
+    statusClass = 'danger';
     descText = 'Filo izquierdo de la navaja: exceso de fósforo en relación al carbono (dieta saturada de Daphnia). Costo metabólico de excreción.';
   } else if (dietCP >= 108 && dietCP <= 215) {
     if (Math.abs(dietCP - OPTIMUM_CP) <= 15) {
-      statusText = 'ZONA ÓPTIMA MÁXIMA';
-      statusClass = 'kpi-card optimum';
+      statusText = 'Zona Óptima (g máx)';
+      statusClass = 'optimum';
       descText = 'Crecimiento poblacional máximo (~0.010 d⁻¹). Dieta estequiométricamente balanceada.';
     } else {
-      statusText = 'ZONA DE CRECIMIENTO POSITIVO';
-      statusClass = 'kpi-card optimum';
+      statusText = 'Crecimiento (+)';
+      statusClass = 'optimum';
       descText = 'Ventana estequiométrica donde el depredador acumula biomasa y se reproduce.';
     }
   } else {
-    statusText = 'Limitación Severa por Fósforo (P-déficit)';
-    statusClass = 'kpi-card danger';
+    statusText = 'Déficit P (g ≤ 0)';
+    statusClass = 'danger';
     descText = 'Filo derecho de la navaja: escasez de P para síntesis de ARN ribosomal. Crecimiento nulo o biomasa declinante.';
   }
 
   if (kpiStatus) kpiStatus.innerText = statusText;
   if (cardStatus) {
-    cardStatus.className = statusClass;
+    cardStatus.className = `kpi-card-compact ${statusClass}`.trim();
+    cardStatus.title = descText;
     const subDesc = document.getElementById('kpi-status-desc');
     if (subDesc) subDesc.innerText = descText;
   }

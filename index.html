@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Parabroteas sarsi: Restricciones Estequiométricas en Lagos Patagónicos</title>
   <meta name="description" content="Simulador de estequiometría ecológica, la hipótesis del filo de la navaja y el impacto de peces en Parabroteas sarsi. Basado en Balseiro et al. (2022).">
-  <link rel="stylesheet" href="app.css?v=3">
+  <link rel="stylesheet" href="app.css?v=5">
   <!-- Chart.js: Carga local prioritaria con fallback CDN para GitHub Pages -->
   <script src="lib/chart.umd.min.js"></script>
   <script>
@@ -98,20 +98,32 @@
           <!-- Indicadores Cuantitativos en Vivo -->
           <div class="kpi-row-compact">
             <div class="kpi-card-compact" id="card-cp">
-              <span class="kpi-title-compact">C:P Dieta:</span>
-              <span class="kpi-val-compact" id="kpi-diet-cp">162.5</span>
-              <span class="kpi-sub-compact">Óptimo: 162.5</span>
+              <div class="kpi-row-header">
+                <span class="kpi-title-compact">C:P Dieta</span>
+                <span class="kpi-sub-compact">Ópt: 162.5</span>
+              </div>
+              <div class="kpi-row-body">
+                <span class="kpi-val-compact" id="kpi-diet-cp">162.5</span>
+              </div>
             </div>
 
             <div class="kpi-card-compact" id="card-growth">
-              <span class="kpi-title-compact">Tasa Crecimiento <i>g</i>:</span>
-              <span class="kpi-val-compact" id="kpi-growth-rate">+0.0099</span>
-              <span class="kpi-unit-compact">d<sup>&minus;1</sup></span>
+              <div class="kpi-row-header">
+                <span class="kpi-title-compact">Tasa Crecimiento <i>g</i></span>
+              </div>
+              <div class="kpi-row-body">
+                <span class="kpi-val-compact" id="kpi-growth-rate">+0.0099</span>
+                <span class="kpi-unit-compact">d<sup>&minus;1</sup></span>
+              </div>
             </div>
 
             <div class="kpi-card-compact optimum" id="card-status">
-              <span class="kpi-title-compact">Estado:</span>
-              <span class="kpi-val-compact" id="kpi-metabolic-status" style="font-size: 0.8rem;">ZONA ÓPTIMA MÁXIMA</span>
+              <div class="kpi-row-header">
+                <span class="kpi-title-compact">Estado Metabólico</span>
+              </div>
+              <div class="kpi-row-body">
+                <span class="kpi-val-compact" id="kpi-metabolic-status">ZONA ÓPTIMA</span>
+              </div>
             </div>
           </div>
 
@@ -566,6 +578,6 @@
     <p>Referencia: Balseiro, E., Modenutti, B., Laspoumaderes, C., Schenone, L., Bastidas Navarro, M., & Martyniuk, N. (2022). <em>Ecología Austral</em> 32:638–649.</p>
   </footer>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
