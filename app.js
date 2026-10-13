@@ -11,10 +11,10 @@ let ontogenyChart = null;
 
 // Database of potential prey from Figure 4 & paper text
 const PREY_SPECIES = [
-  { id: 'd_comm', name: 'Daphnia commutata', type: 'cladocera', size: 2.5, cp: 65, defaultWeight: 20, desc: 'Cladócero grande, bajo C:P (rico en P), altamente vulnerable a peces' },
-  { id: 'd_dada', name: 'Daphnia dadayana', type: 'cladocera', size: 2.0, cp: 75, defaultWeight: 10, desc: 'Cladócero intermedio, bajo C:P, vulnerable a peces' },
-  { id: 'b_graci', name: 'Boeckella gracilis', type: 'copepod', size: 1.5, cp: 228, defaultWeight: 35, desc: 'Copépodo calanoideo intermedio, alto C:P (pobre en P)' },
-  { id: 'b_gracilipes', name: 'Boeckella gracilipes', type: 'copepod', size: 0.9, cp: 230, defaultWeight: 20, desc: 'Copépodo pequeño, sobrevive con peces, alto C:P' },
+  { id: 'd_comm', name: 'Daphnia commutata', type: 'cladocera', size: 2.5, cp: 65, defaultWeight: 13, desc: 'Cladócero grande, bajo C:P (rico en P), altamente vulnerable a peces' },
+  { id: 'd_dada', name: 'Daphnia dadayana', type: 'cladocera', size: 2.0, cp: 75, defaultWeight: 4, desc: 'Cladócero intermedio, bajo C:P, vulnerable a peces' },
+  { id: 'b_graci', name: 'Boeckella gracilis', type: 'copepod', size: 1.5, cp: 228, defaultWeight: 31, desc: 'Copépodo calanoideo intermedio, alto C:P (pobre en P)' },
+  { id: 'b_gracilipes', name: 'Boeckella gracilipes', type: 'copepod', size: 0.9, cp: 230, defaultWeight: 37, desc: 'Copépodo pequeño, sobrevive con peces, alto C:P' },
   { id: 'b_mich', name: 'Boeckella michaelseni', type: 'copepod', size: 1.0, cp: 230, defaultWeight: 15, desc: 'Copépodo pequeño, presa común en lagos profundos' },
   { id: 'b_gibb', name: 'Boeckella gibbosa', type: 'copepod', size: 1.6, cp: 235, defaultWeight: 0, desc: 'Copépodo intermedio, moderadamente vulnerable' },
   { id: 'b_brevi', name: 'Boeckella brevicaudata', type: 'copepod', size: 1.8, cp: 236, defaultWeight: 0, desc: 'Copépodo de tamaño medio-grande' },
@@ -316,11 +316,12 @@ function applyPreset(preset) {
   PREY_SPECIES.forEach(p => weights[p.id] = 0);
 
   if (preset === 'optimal') {
-    // Mezcla balanceada C:P ~ 162.5
-    weights['d_comm'] = 18;
-    weights['b_graci'] = 45;
-    weights['b_gracilipes'] = 25;
-    weights['d_dada'] = 12;
+    // Mezcla estequiométrica balanceada en el ápice óptimo C:P = 162.5 (17% Cladóceros + 83% Copépodos)
+    weights['d_comm'] = 13;
+    weights['d_dada'] = 4;
+    weights['b_graci'] = 31;
+    weights['b_gracilipes'] = 37;
+    weights['b_mich'] = 15;
   } else if (preset === 'pure_daphnia') {
     // Solo Daphnia: C:P ~ 65 (crecimiento negativo por exceso de P)
     weights['d_comm'] = 70;
