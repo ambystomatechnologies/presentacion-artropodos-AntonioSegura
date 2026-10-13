@@ -108,13 +108,14 @@ const STAGES_DATA = {
 // Empirical Knife-edge model parameters (Figure 5 & Laspoumaderes et al. 2015)
 const OPTIMUM_CP = 162.5;
 const MAX_GROWTH = 0.0099; // d^-1
-const CURVATURE_K = 3.367e-6; // g(x) = MAX_GROWTH - K * (x - OPTIMUM_CP)^2
+const CURVATURE_K = 1.725e-6; // Calibrado fielmente a la curva empírica de Fig. 5 (pasa por g = -0.0115 en CP = 51)
+const MIN_GROWTH = -0.0135; // Límite fisiológico de pérdida somática para mantener visualización en rango
 const BASELINE_MORTALITY = 0.002; // natural mortality d^-1
 
 // Helper: Calculate growth rate g(CP)
 function calculateGrowthRate(cp) {
   const g = MAX_GROWTH - CURVATURE_K * Math.pow(cp - OPTIMUM_CP, 2);
-  return g;
+  return Math.max(MIN_GROWTH, g);
 }
 
 // Helper: Calculate composite diet C:P (Stoichiometric Harmonic/Mass balance)
