@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Parabroteas sarsi: Restricciones Estequiométricas en Lagos Patagónicos</title>
   <meta name="description" content="Simulador de estequiometría ecológica, la hipótesis del filo de la navaja y el impacto de peces en Parabroteas sarsi. Basado en Balseiro et al. (2022).">
-  <link rel="stylesheet" href="app.css?v=6">
+  <link rel="stylesheet" href="app.css?v=7">
   <!-- Chart.js: Carga local prioritaria con fallback CDN para GitHub Pages -->
   <script src="lib/chart.umd.min.js"></script>
   <script>
@@ -15,6 +15,34 @@
   </script>
 </head>
 <body>
+
+  <!-- Pantalla de Bloqueo: Obliga a Vista Horizontal en Teléfonos Celulares (Calco de Ejemplo) -->
+  <div class="landscape-lock-overlay" id="landscape-lock-overlay">
+    <div class="landscape-lock-card">
+      <div class="landscape-phone-animation">
+        <div class="phone-anim-body">
+          <div class="phone-anim-screen">
+            <span class="phone-anim-dot"></span>
+          </div>
+        </div>
+        <div class="phone-anim-arrow">↻</div>
+      </div>
+
+      <h2 class="landscape-title">Gira tu teléfono horizontalmente</h2>
+
+      <p class="landscape-desc">
+        La visualización científica y modelado de dinámicas poblacionales requiere vista panorámica (horizontal).
+      </p>
+
+      <div class="landscape-desktop-notice">
+        💡 Recomendado en PC para un modelado preciso.
+      </div>
+
+      <button type="button" class="btn-primary btn-rotate-request" id="btn-request-landscape">
+        🔄 Habilitar Vista Horizontal
+      </button>
+    </div>
+  </div>
 
   <!-- BARRA CIENTÍFICA SUPERIOR (Cita y Afiliación Académica) -->
   <div class="meta-top-bar">
@@ -537,34 +565,6 @@
     </section>
   </main>
 
-  <!-- Pantalla de Bloqueo: Obliga a Vista Horizontal en Teléfonos Celulares -->
-  <div class="landscape-lock-overlay" id="landscape-lock-overlay">
-    <div class="landscape-lock-card">
-      <div class="landscape-phone-animation">
-        <div class="phone-anim-body">
-          <div class="phone-anim-screen">
-            <span class="phone-anim-dot"></span>
-          </div>
-        </div>
-        <div class="phone-anim-arrow">↻</div>
-      </div>
-
-      <h2 class="landscape-title">Gira tu teléfono horizontalmente</h2>
-
-      <p class="landscape-desc">
-        La visualización científica y modelado de dinámicas poblacionales requiere vista panorámica (horizontal).
-      </p>
-
-      <div class="landscape-desktop-notice">
-        💡 Recomendado en PC para un modelado preciso.
-      </div>
-
-      <button type="button" class="btn-primary btn-rotate-request" id="btn-request-landscape">
-        🔄 Habilitar Vista Horizontal
-      </button>
-    </div>
-  </div>
-
   <!-- Modal para Visualización Ampliada de Figuras -->
   <div id="figureModal" class="modal-overlay">
     <div class="modal-content">
@@ -578,6 +578,6 @@
     <p>Referencia: Balseiro, E., Modenutti, B., Laspoumaderes, C., Schenone, L., Bastidas Navarro, M., & Martyniuk, N. (2022). <em>Ecología Austral</em> 32:638–649.</p>
   </footer>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
