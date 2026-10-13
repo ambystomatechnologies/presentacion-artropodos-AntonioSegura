@@ -802,10 +802,14 @@ function initFiguresModal() {
   const modalImg = document.getElementById('modalImage');
   const closeBtn = document.querySelector('.modal-close');
 
-  document.querySelectorAll('.figure-img-wrap img').forEach(img => {
-    img.addEventListener('click', () => {
-      modalImg.src = img.src;
-      modal.classList.add('active');
+  document.querySelectorAll('.figure-img-wrap').forEach(wrap => {
+    wrap.addEventListener('click', () => {
+      const img = wrap.querySelector('img');
+      if (img && modalImg) {
+        modalImg.src = img.currentSrc || img.src;
+        modalImg.alt = img.alt || '';
+        modal.classList.add('active');
+      }
     });
   });
 
