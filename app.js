@@ -183,24 +183,56 @@ function setupTabs() {
 }
 
 // Fullscreen Toggle (con soporte Escape)
+let userManuallyExitedFullscreen = false;
+
 function initFullscreen() {
   const btnFs = document.getElementById('btn-fullscreen');
   if (!btnFs) return;
 
-  btnFs.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.warn('Error al activar pantalla completa:', err);
-      });
+  btnFs.addEventListener('click', async () => {
+    const isFs = Boolean(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+
+    if (!isFs) {
+      userManuallyExitedFullscreen = false;
+      await triggerFullscreen();
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
+      userManuallyExitedFullscreen = true;
+      try {
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+      } catch (e) {}
+
+      try {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+      } catch (err) {
+        console.warn('Error al salir de pantalla completa:', err);
       }
     }
   });
 
   const updateFsUI = () => {
-    if (document.fullscreenElement) {
+    const isFs = Boolean(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+
+    if (isFs) {
       btnFs.innerHTML = '🗗 Salir Pantalla Completa <kbd>Esc</kbd>';
       btnFs.classList.add('active');
     } else {
@@ -836,24 +868,45 @@ function isMobileOrTabletDevice() {
   return Boolean(uaCheck || touchScreenCheck || coarsePointer || window.innerHeight <= 620 || window.innerWidth <= 950);
 }
 
-// --- PANTALLA COMPLETA AUTOMÁTICA EN MÓVILES (IDÉNTICO A EJEMPLO) ---
+// --- PANTALLA COMPLETA AUTOMÁTICA Y BLOQUEO DE ORIENTACIÓN EN MÓVILES ---
 async function triggerFullscreen() {
-  if (document.fullscreenElement) return;
-  try {
-    const el = document.documentElement;
-    if (el.requestFullscreen) {
-      await el.requestFullscreen();
-    } else if (el.webkitRequestFullscreen) {
-      await el.webkitRequestFullscreen();
-    } else if (el.mozRequestFullScreen) {
-      await el.mozRequestFullScreen();
-    } else if (el.msRequestFullscreen) {
-      await el.msRequestFullscreen();
+  const isFs = Boolean(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement
+  );
+
+  const el = document.documentElement;
+
+  if (!isFs) {
+    try {
+      if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if (el.webkitRequestFullscreen) {
+        await el.webkitRequestFullscreen();
+      } else if (el.mozRequestFullScreen) {
+        await el.mozRequestFullScreen();
+      } else if (el.msRequestFullscreen) {
+        await el.msRequestFullscreen();
+      }
+    } catch (e) {
+      console.warn('Error al solicitar pantalla completa:', e);
     }
-    if (screen.orientation && screen.orientation.lock) {
-      try { await screen.orientation.lock('landscape'); } catch (e) {}
+  }
+
+  // En Android / navegadores móviles, screen.orientation.lock requiere estar en pantalla completa primero
+  if (screen.orientation && screen.orientation.lock) {
+    try {
+      await screen.orientation.lock('landscape');
+    } catch (e1) {
+      try {
+        await screen.orientation.lock('landscape-primary');
+      } catch (e2) {
+        // En navegadores que no admiten lock o iOS Safari se gestiona por rotación del dispositivo
+      }
     }
-  } catch (e) {}
+  }
 }
 
 function initOrientationLock() {
@@ -866,6 +919,7 @@ function initOrientationLock() {
     const isPortrait = window.innerHeight > window.innerWidth;
 
     if (isMobile && isPortrait) {
+      userManuallyExitedFullscreen = false;
       window.scrollTo(0, 0);
       document.body.classList.add('portrait-locked');
       document.documentElement.classList.add('portrait-locked');
@@ -874,6 +928,12 @@ function initOrientationLock() {
       document.body.classList.remove('portrait-locked');
       document.documentElement.classList.remove('portrait-locked');
       landscapeOverlay.style.setProperty('display', 'none', 'important');
+
+      // Si es un dispositivo móvil y está en horizontal, entrar automáticamente en pantalla completa
+      if (isMobile && !document.fullscreenElement && !document.webkitFullscreenElement && !userManuallyExitedFullscreen) {
+        triggerFullscreen().catch(() => {});
+      }
+
       setTimeout(() => {
         if (knifeEdgeChart) knifeEdgeChart.resize();
         if (popDynamicChart) popDynamicChart.resize();
@@ -883,25 +943,83 @@ function initOrientationLock() {
     }
   }
 
-  // NOTA: Se evita invocar triggerFullscreen() automáticamente en móviles
-  // para que Android / Chrome NO muestre el cartel del sistema:
-  // "ambystomatechnologies.github.io: Para salir de la pantalla completa..."
-
+  // Botón "🔄 Habilitar Vista Horizontal": entrar en pantalla completa y apaisado inmediatamente
   if (btnRequestLandscape) {
-    btnRequestLandscape.addEventListener('click', async () => {
-      try {
-        if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape');
-        }
-      } catch (err) {}
-    });
+    let isRequesting = false;
+    const handleLandscapeRequest = async (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      if (isRequesting) return;
+      isRequesting = true;
+      setTimeout(() => { isRequesting = false; }, 800);
+
+      userManuallyExitedFullscreen = false;
+
+      // Ocultar pantalla de bloqueo de inmediato para feedback instantáneo
+      if (landscapeOverlay) {
+        landscapeOverlay.style.setProperty('display', 'none', 'important');
+      }
+      document.body.classList.remove('portrait-locked');
+      document.documentElement.classList.remove('portrait-locked');
+
+      // Activar pantalla completa y orientación horizontal
+      await triggerFullscreen();
+
+      // Chequeos sucesivos para redibujado óptimo de gráficos
+      checkOrientationLock();
+      setTimeout(checkOrientationLock, 150);
+      setTimeout(checkOrientationLock, 400);
+      setTimeout(checkOrientationLock, 800);
+    };
+
+    btnRequestLandscape.addEventListener('click', handleLandscapeRequest);
+    btnRequestLandscape.addEventListener('touchend', handleLandscapeRequest);
   }
 
-  window.addEventListener('resize', checkOrientationLock);
+  // Asegurar pantalla completa cuando el usuario gira el teléfono manualmente a horizontal y toca la pantalla
+  const ensureFullscreenOnMobileLandscape = () => {
+    if (isMobileOrTabletDevice() && !document.fullscreenElement && !document.webkitFullscreenElement && !userManuallyExitedFullscreen) {
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (!isPortrait) {
+        triggerFullscreen().catch(() => {});
+      }
+    }
+  };
+
+  window.addEventListener('touchstart', ensureFullscreenOnMobileLandscape, { passive: true });
+  window.addEventListener('pointerdown', ensureFullscreenOnMobileLandscape, { passive: true });
+  window.addEventListener('click', ensureFullscreenOnMobileLandscape, { passive: true });
+
+  window.addEventListener('resize', () => {
+    checkOrientationLock();
+  });
+
   window.addEventListener('orientationchange', () => {
+    // Si giró a horizontal en móvil, disparar pantalla completa
+    const isMobile = isMobileOrTabletDevice();
+    if (isMobile && !userManuallyExitedFullscreen) {
+      setTimeout(() => {
+        if (window.innerWidth >= window.innerHeight) {
+          triggerFullscreen().catch(() => {});
+        }
+      }, 50);
+    }
     setTimeout(checkOrientationLock, 150);
   });
+
   document.addEventListener('fullscreenchange', () => {
+    setTimeout(() => {
+      checkOrientationLock();
+      if (knifeEdgeChart) knifeEdgeChart.resize();
+      if (popDynamicChart) popDynamicChart.resize();
+      if (cascadeChart) cascadeChart.resize();
+      if (ontogenyChart) ontogenyChart.resize();
+    }, 150);
+  });
+
+  document.addEventListener('webkitfullscreenchange', () => {
     setTimeout(() => {
       checkOrientationLock();
       if (knifeEdgeChart) knifeEdgeChart.resize();
