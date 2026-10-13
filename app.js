@@ -108,14 +108,15 @@ const STAGES_DATA = {
 // Empirical Knife-edge model parameters (Figure 5 & Laspoumaderes et al. 2015)
 const OPTIMUM_CP = 162.5;
 const MAX_GROWTH = 0.0099; // d^-1
-const CURVATURE_K = 1.725e-6; // Calibrado fielmente a la curva empírica de Fig. 5 (pasa por g = -0.0115 en CP = 51)
-const MIN_GROWTH = -0.0135; // Límite fisiológico de pérdida somática para mantener visualización en rango
-const BASELINE_MORTALITY = 0.002; // natural mortality d^-1
+const CURVATURE_K = 1.725e-6; // Ecuación de regresión empírica exacta de Fig. 5 (Balseiro et al. 2022)
+const BASELINE_MORTALITY = 0.002; // Mortalidad natural basal d^-1
+const TROUT_PREDATION_MORTALITY = 0.012; // Mortalidad adicional por predación visual de truchas sobre P. sarsi (Fig. 1)
+let popTimeHorizon = 365; // Horizonte de proyección por defecto en 1 año (365 días)
+let activePreset = 'optimal'; // Preset ecológico activo
 
-// Helper: Calculate growth rate g(CP)
+// Helper: Calculate growth rate g(CP) continuo sin cortes planos (forma exacta idéntica a Fig. 5)
 function calculateGrowthRate(cp) {
-  const g = MAX_GROWTH - CURVATURE_K * Math.pow(cp - OPTIMUM_CP, 2);
-  return Math.max(MIN_GROWTH, g);
+  return MAX_GROWTH - CURVATURE_K * Math.pow(cp - OPTIMUM_CP, 2);
 }
 
 // Helper: Calculate composite diet C:P (Stoichiometric Harmonic/Mass balance)
@@ -143,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initPreySliders();
   initKnifeEdgeChart();
   initPopDynamicChart();
+  initTimeHorizonControls();
   initFishCascade();
   initOntogenyModule();
   initFiguresModal();
@@ -298,6 +300,8 @@ function initPreySliders() {
 
     const slider = div.querySelector('input');
     slider.addEventListener('input', (e) => {
+      activePreset = '';
+      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
       document.getElementById(`val-${prey.id}`).innerText = `${e.target.value}%`;
       updateSimulation();
     });
@@ -313,6 +317,7 @@ function initPreySliders() {
 }
 
 function applyPreset(preset) {
+  activePreset = preset;
   const weights = {};
   PREY_SPECIES.forEach(p => weights[p.id] = 0);
 
@@ -472,13 +477,22 @@ function initPopDynamicChart() {
   const ctx = document.getElementById('popDynamicCanvas');
   if (!ctx) return;
 
-  const days = Array.from({ length: 31 }, (_, i) => i);
-  const baselineTraj = days.map(d => 100 * Math.exp((calculateGrowthRate(162.5) - BASELINE_MORTALITY) * d));
+  const totalDays = 365;
+  const step = 5;
+  const dayPoints = [];
+  for (let d = 0; d <= totalDays; d += step) {
+    dayPoints.push(d);
+  }
+  if (dayPoints[dayPoints.length - 1] !== totalDays) {
+    dayPoints.push(totalDays);
+  }
+
+  const baselineTraj = dayPoints.map(d => 100 * Math.exp((calculateGrowthRate(162.5) - BASELINE_MORTALITY) * d));
 
   popDynamicChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: days.map(d => `Día ${d}`),
+      labels: dayPoints.map(d => `Día ${d}`),
       datasets: [
         {
           label: 'N(t) Población Proyectada',
@@ -492,7 +506,7 @@ function initPopDynamicChart() {
         },
         {
           label: 'N₀ = 100 (Referencia Inicial)',
-          data: days.map(() => 100),
+          data: dayPoints.map(() => 100),
           borderColor: 'rgba(148, 163, 184, 0.4)',
           borderDash: [5, 4],
           borderWidth: 1.4,
@@ -513,17 +527,50 @@ function initPopDynamicChart() {
         y: {
           title: { display: true, text: 'Densidad poblacional N(t) (ind / m³)', color: '#94a3b8', font: { size: 11 } },
           grid: { color: 'rgba(255, 255, 255, 0.05)' },
-          ticks: { color: '#94a3b8', font: { size: 10 } }
+          ticks: { color: '#94a3b8', font: { size: 10 } },
+          beginAtZero: true,
+          suggestedMin: 0
         }
       },
       plugins: {
         legend: {
           position: 'top',
           labels: { color: '#e2e8f0', font: { size: 10 }, boxWidth: 12, padding: 8 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} ind / m³`
+          }
         }
       }
     }
   });
+}
+
+// Controls for Time Horizon (30 Días vs 1 Año)
+function initTimeHorizonControls() {
+  const btn30 = document.getElementById('btn-horizon-30');
+  const btn365 = document.getElementById('btn-horizon-365');
+  const titleEl = document.getElementById('pop-dynamic-title');
+
+  const setHorizon = (days) => {
+    popTimeHorizon = days;
+    if (btn30 && btn365) {
+      if (days === 30) {
+        btn30.classList.add('active');
+        btn365.classList.remove('active');
+        if (titleEl) titleEl.innerHTML = 'Dinámica Poblacional de <em>P. sarsi</em> (30 Días)';
+      } else {
+        btn30.classList.remove('active');
+        btn365.classList.add('active');
+        if (titleEl) titleEl.innerHTML = 'Dinámica Poblacional de <em>P. sarsi</em> (1 Año)';
+      }
+    }
+    updateSimulation();
+  };
+
+  if (btn30) btn30.addEventListener('click', () => setHorizon(30));
+  if (btn365) btn365.addEventListener('click', () => setHorizon(365));
 }
 
 // Update simulation calculations
@@ -552,7 +599,7 @@ function updateSimulation() {
   if (dietCP < 108) {
     statusText = 'Toxicidad P (g < 0)';
     statusClass = 'danger';
-    descText = 'Filo izquierdo de la navaja: exceso de fósforo en relación al carbono (dieta saturada de Daphnia). Costo metabólico de excreción.';
+    descText = 'Filo izquierdo de la navaja: exceso de fósforo en relación al carbono (dieta saturada de Daphnia). Costo metabólico de excreción y pérdida somática.';
   } else if (dietCP >= 108 && dietCP <= 215) {
     if (Math.abs(dietCP - OPTIMUM_CP) <= 15) {
       statusText = 'Zona Óptima (g máx)';
@@ -564,9 +611,9 @@ function updateSimulation() {
       descText = 'Ventana estequiométrica donde el depredador acumula biomasa y se reproduce.';
     }
   } else {
-    statusText = 'Déficit P (g ≤ 0)';
-    statusClass = 'danger';
-    descText = 'Filo derecho de la navaja: escasez de P para síntesis de ARN ribosomal. Crecimiento nulo o biomasa declinante.';
+    statusText = 'Déficit P (Subóptimo)';
+    statusClass = 'warning';
+    descText = 'Filo derecho de la navaja: escasez de P para síntesis de ARN ribosomal y producción de huevos. Crecimiento somático bajo e insuficiente para reproducción sostenida.';
   }
 
   if (kpiStatus) kpiStatus.innerText = statusText;
@@ -577,21 +624,77 @@ function updateSimulation() {
     if (subDesc) subDesc.innerText = descText;
   }
 
-  // Update Knife-Edge Chart Current Point
+  // Update Knife-Edge Chart Current Point & Dynamic Axis Scaling
   if (knifeEdgeChart) {
+    const baseMinX = 40;
+    const baseMaxX = 280;
+    const baseMinY = -0.015;
+    const baseMaxY = 0.015;
+
+    // Si algún slider sitúa un valor fuera de rango, la gráfica se ajusta dinámicamente con margen
+    const targetMinX = (dietCP > 0 && dietCP < baseMinX) ? Math.floor(dietCP - 10) : baseMinX;
+    const targetMaxX = dietCP > baseMaxX ? Math.ceil(dietCP + 10) : baseMaxX;
+    const targetMinY = growthRate < baseMinY ? Math.floor((growthRate - 0.003) * 1000) / 1000 : baseMinY;
+    const targetMaxY = growthRate > baseMaxY ? Math.ceil((growthRate + 0.003) * 1000) / 1000 : baseMaxY;
+
+    // Regenerar curva para cubrir el rango visible de X si cambió
+    if (knifeEdgeChart.options.scales.x.min !== targetMinX || knifeEdgeChart.options.scales.x.max !== targetMaxX) {
+      const newCurve = [];
+      for (let cp = targetMinX; cp <= targetMaxX; cp += 2) {
+        newCurve.push({ x: cp, y: calculateGrowthRate(cp) });
+      }
+      knifeEdgeChart.data.datasets[0].data = newCurve;
+    }
+
+    knifeEdgeChart.options.scales.x.min = targetMinX;
+    knifeEdgeChart.options.scales.x.max = targetMaxX;
+    knifeEdgeChart.options.scales.y.min = targetMinY;
+    knifeEdgeChart.options.scales.y.max = targetMaxY;
+
     knifeEdgeChart.data.datasets[4].data = [{ x: dietCP, y: growthRate }];
     knifeEdgeChart.update();
   }
 
   // Update Population Trajectory
   if (popDynamicChart) {
-    const days = Array.from({ length: 31 }, (_, i) => i);
-    const netRate = growthRate - BASELINE_MORTALITY;
-    const newTraj = days.map(d => Math.max(0, 100 * Math.exp(netRate * d)));
+    const totalDays = popTimeHorizon === 365 ? 365 : 30;
+    const step = popTimeHorizon === 365 ? 5 : 1;
+    const dayPoints = [];
+    for (let d = 0; d <= totalDays; d += step) {
+      dayPoints.push(d);
+    }
+    if (dayPoints[dayPoints.length - 1] !== totalDays) {
+      dayPoints.push(totalDays);
+    }
 
+    // Mortalidad: en presencia de truchas ('stocked_fish'), la predación visual por peces aniquila al copépodo gigante (Fig. 1)
+    const fishMortality = (activePreset === 'stocked_fish') ? TROUT_PREDATION_MORTALITY : 0;
+    const netRate = growthRate - (BASELINE_MORTALITY + fishMortality);
+    const newTraj = dayPoints.map(d => Math.max(0, 100 * Math.exp(netRate * d)));
+    const refBaseline = dayPoints.map(() => 100);
+
+    popDynamicChart.data.labels = dayPoints.map(d => `Día ${d}`);
     popDynamicChart.data.datasets[0].data = newTraj;
     popDynamicChart.data.datasets[0].borderColor = netRate >= 0 ? '#10b981' : '#f43f5e';
     popDynamicChart.data.datasets[0].backgroundColor = netRate >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)';
+    popDynamicChart.data.datasets[1].data = refBaseline;
+
+    // A 30 días: se mantiene tal y como estaba originalmente (escala automática para notar pequeñas variaciones)
+    // A 1 año: se fija el inicio en cero para apreciar la extinción local (llegada a cero) si netRate < 0
+    if (popTimeHorizon === 365) {
+      popDynamicChart.options.scales.y.beginAtZero = true;
+      popDynamicChart.options.scales.y.suggestedMin = 0;
+      if (netRate <= 0) {
+        popDynamicChart.options.scales.y.suggestedMax = 100;
+      } else {
+        delete popDynamicChart.options.scales.y.suggestedMax;
+      }
+    } else {
+      popDynamicChart.options.scales.y.beginAtZero = false;
+      delete popDynamicChart.options.scales.y.suggestedMin;
+      delete popDynamicChart.options.scales.y.suggestedMax;
+    }
+
     popDynamicChart.update();
   }
 }

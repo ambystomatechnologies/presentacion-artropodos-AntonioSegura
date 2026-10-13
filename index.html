@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Parabroteas sarsi: Restricciones Estequiométricas en Lagos Patagónicos</title>
   <meta name="description" content="Simulador de estequiometría ecológica, la hipótesis del filo de la navaja y el impacto de peces en Parabroteas sarsi. Basado en Balseiro et al. (2022).">
-  <link rel="stylesheet" href="app.css?v=11">
+  <link rel="stylesheet" href="app.css?v=15">
   <!-- Chart.js: Carga local prioritaria con fallback CDN para GitHub Pages -->
   <script src="lib/chart.umd.min.js"></script>
   <script>
@@ -171,7 +171,13 @@
             <!-- Gráfico 2: Dinámica Poblacional del Depredador -->
             <div class="chart-card">
               <div class="chart-header-compact">
-                <span class="chart-title-compact">Dinámica Poblacional de <em>P. sarsi</em> a 30 Días</span>
+                <div class="chart-title-group">
+                  <span class="chart-title-compact" id="pop-dynamic-title">Dinámica Poblacional de <em>P. sarsi</em> (1 Año)</span>
+                  <div class="time-horizon-toggle" role="group" aria-label="Horizonte temporal de proyección">
+                    <button type="button" class="btn-time" id="btn-horizon-30" data-horizon="30" title="Vista de corto plazo a 30 días">30 Días</button>
+                    <button type="button" class="btn-time active" id="btn-horizon-365" data-horizon="365" title="Vista ecológica anual: muestra la extinción local (llegada a cero) a 1 año">1 Año</button>
+                  </div>
+                </div>
                 <span class="chart-badge-compact"><i>N</i>(<i>t</i>) = <i>N</i><sub>0</sub>·e<sup>(<i>g</i>&minus;<i>m</i>)<i>t</i></sup></span>
               </div>
               <div class="canvas-container-cockpit">
