@@ -883,25 +883,12 @@ function initOrientationLock() {
     }
   }
 
-  // Gesto inicial para entrar automáticamente en pantalla completa en el primer toque móvil
-  const onFirstMobileGesture = () => {
-    if (isMobileOrTabletDevice() && !document.fullscreenElement) {
-      triggerFullscreen();
-    }
-    window.removeEventListener('touchstart', onFirstMobileGesture);
-    window.removeEventListener('click', onFirstMobileGesture);
-  };
-  window.addEventListener('touchstart', onFirstMobileGesture, { passive: true });
-  window.addEventListener('click', onFirstMobileGesture, { passive: true });
-
-  // Si el navegador móvil permite entrar en pantalla completa al cargar
-  if (isMobileOrTabletDevice()) {
-    setTimeout(triggerFullscreen, 300);
-  }
+  // NOTA: Se evita invocar triggerFullscreen() automáticamente en móviles
+  // para que Android / Chrome NO muestre el cartel del sistema:
+  // "ambystomatechnologies.github.io: Para salir de la pantalla completa..."
 
   if (btnRequestLandscape) {
     btnRequestLandscape.addEventListener('click', async () => {
-      await triggerFullscreen();
       try {
         if (screen.orientation && screen.orientation.lock) {
           await screen.orientation.lock('landscape');
